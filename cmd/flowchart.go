@@ -12,7 +12,7 @@ import (
 
 func init() {
 	flowchart.PersistentFlags().StringP("input", "i", "output.json", "Input file")
-	flowchart.PersistentFlags().StringP("output", "o", "flowchart.txr", "Output file")
+	flowchart.PersistentFlags().StringP("output", "o", "flowchart.txt", "Output file")
 	rootCmd.AddCommand(flowchart)
 }
 
