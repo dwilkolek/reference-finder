@@ -36,6 +36,8 @@ var skipRepos = []string{
 
 var reg = regexp.MustCompile("(?m)(?:http|https)://([a-zA-Z0-9-]+)(?:.dev|.demo){0,1}.service")
 
+var prefix string = ""
+
 func main() {
 	_ = os.Mkdir("tmp", os.ModePerm)
 
@@ -115,7 +117,7 @@ func process(repo Repository, allRepos []Repository) []Resource {
 				dependencies := findDependencies(Repository{
 					Name: nestedAppName,
 				}, nestedLocation, allRepos)
-				nestedResources = append(nestedResources, Resource{Source: "app:" + nestedAppName, Dependencies: dependencies})
+				nestedResources = append(nestedResources, Resource{Source: prefix + nestedAppName, Dependencies: dependencies})
 			}
 
 		}
@@ -126,7 +128,7 @@ func process(repo Repository, allRepos []Repository) []Resource {
 
 	fmt.Printf("%s Found %d\n", repo.Name, len(dependencies))
 	return []Resource{{
-		Source:       "app:" + repo.Name,
+		Source:       prefix + repo.Name,
 		Dependencies: dependencies,
 	}}
 }
@@ -154,7 +156,7 @@ func findDependencies(repo Repository, startingPath string, allRepos []Repositor
 							depsMap[appName] = true
 							for _, validName := range allRepos {
 								if validName.Name == appName {
-									deps = append(deps, "app:"+appName)
+									deps = append(deps, prefix+appName)
 									break
 								}
 							}
