@@ -29,7 +29,7 @@ go run main.go analize --reg "(?:http|https)://([a-zA-Z0-9-]+)(?:.dev|.demo){0,1
 go run main.go analize-json -i config.json
 ```
 
-- Generate flowchart.txt
+- Generate flowchart.txt for [Mermaid](https://mermaid.live/)
 
 ```
 go run main.go flowchart -i output.json -o flowchart.txt
