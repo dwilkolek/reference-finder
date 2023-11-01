@@ -19,9 +19,9 @@ func init() {
 }
 
 var analyzeCmd = &cobra.Command{
-	Use:   "analize",
+	Use:   "analyze",
 	Short: "Finds all references specified by parameters",
-	Long:  `TODO`,
+	Long:  `Purpose is to map repositories into single json mapping that could be used to render flowchart.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		input, err := cmd.Flags().GetString("input")
 		if err != nil {

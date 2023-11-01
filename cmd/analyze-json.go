@@ -16,7 +16,7 @@ func init() {
 }
 
 var analyzeJsonCmd = &cobra.Command{
-	Use:   "analize-json",
+	Use:   "analyze-json",
 	Short: "Finds all references specified by json file",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {

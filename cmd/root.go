@@ -10,20 +10,17 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "reference-finder",
 	Short: "reference-finder tool to find random references across repositories(directories)",
-	Long: `Written in go. It goes through specified repos in input.json and generates output.json.
-Output.json contains found resources and references to other resources. What is resource? 
-	- Repository name (expect rootlike repos)
-	- Directory in main rootlike repo
-	- First capture grup in regex
+	Long: `Written in go. It goes through specified repos and looks for references to connect them.
+What is resource? RTFM! 🤠
 			`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("No idea what you expect. RTFM!")
+		fmt.Println("No idea what do you expect 🤨")
 	},
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		rootCmd.Help()
 	}
 }

@@ -15,6 +15,9 @@ func init() {
 	flowchart.PersistentFlags().StringP("output", "o", "flowchart.txt", "Output file")
 	flowchart.PersistentFlags().StringP("resource", "r", "", "Chart for single resource")
 	flowchart.PersistentFlags().StringSliceP("exclude", "e", make([]string, 0), "Exclude from chart")
+	flowchart.PersistentFlags().StringP("group-definitions", "g", "", "Group definitions specification")
+	flowchart.PersistentFlags().Bool("include-orphans", false, "Include orphan center")
+
 	rootCmd.AddCommand(flowchart)
 }
 
@@ -44,10 +47,37 @@ var flowchart = &cobra.Command{
 			os.Exit(1)
 		}
 
-		flowchart := runner.GenerateFlowchart(resources, tag, exclude)
+		groupDefinitions, _ := cmd.Flags().GetString("group-definitions")
+
+		orphanCenter, _ := cmd.Flags().GetBool("include-orphans")
+
+		flowchart := runner.GenerateFlowchart(resources, tag, exclude, readGrouppingFile(groupDefinitions), orphanCenter)
 
 		fmt.Printf("Saving to %s\n", output)
 		os.Remove(output)
 		os.WriteFile(output, []byte(flowchart), 0644)
 	},
+}
+
+func readGrouppingFile(file string) map[string][]string {
+	if len(file) == 0 {
+		return map[string][]string{}
+	}
+
+	jsonFile, err := os.Open(file)
+	if err != nil {
+		fmt.Printf("Failed to read file %s: %s\n", file, err)
+		os.Exit(1)
+	}
+	defer jsonFile.Close()
+	data, _ := io.ReadAll(jsonFile)
+	var groups map[string][]string
+
+	err = json.Unmarshal([]byte(data), &groups)
+
+	if err != nil {
+		fmt.Printf("Failed to parse json from file %s: %s\n", file, err)
+		os.Exit(1)
+	}
+	return groups
 }
