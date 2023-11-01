@@ -24,14 +24,12 @@ type Resource struct {
 var wg sync.WaitGroup
 
 type Config struct {
-	ReferenceRegexp        *regexp.Regexp `json:"reg"`
-	Exclude                []string       `json:"exclude"`
-	RootLike               []string       `json:"rootlike"`
-	KeepWithNoDependencies bool           `json:"keepWithNoDependencies"`
-	Concurrency            int16          `json:"concurrency"`
-	InputFile              string         `json:"input"`
-	OutputFile             string         `json:"output"`
-	TrimSuffix             string         `json:"trimSuffix"`
+	ReferenceRegexp *regexp.Regexp `json:"reg"`
+	RootLike        []string       `json:"rootlike"`
+	Concurrency     int16          `json:"concurrency"`
+	InputFile       string         `json:"input"`
+	OutputFile      string         `json:"output"`
+	TrimSuffix      string         `json:"trimSuffix"`
 }
 
 type ExecutionConfig struct {
@@ -51,9 +49,7 @@ func executionConfig(config Config) ExecutionConfig {
 	repositories := readInputFile(config.InputFile)
 	validNames := []string{}
 	for _, r := range repositories {
-		if !slices.Contains(config.Exclude, r.Name) {
-			validNames = append(validNames, r.Name)
-		}
+		validNames = append(validNames, r.Name)
 	}
 	return ExecutionConfig{
 		Config:       config,
@@ -66,9 +62,6 @@ func (collector *collector) outputResourcesList() []Resource {
 	v := make([]Resource, 0)
 
 	for _, res := range collector.resources {
-		if !collector.executionConfig.KeepWithNoDependencies && len(res.References) == 0 {
-			continue
-		}
 		v = append(v, res)
 	}
 	return v

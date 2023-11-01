@@ -13,9 +13,7 @@ func init() {
 	analyzeCmd.PersistentFlags().StringP("input", "i", "input.json", "Input file")
 	analyzeCmd.PersistentFlags().StringSlice("rootlike", make([]string, 0), "Repositories that should be treated as root")
 	analyzeCmd.PersistentFlags().StringP("reg", "r", "", "Reference regexp with one capturing group")
-	analyzeCmd.PersistentFlags().StringSliceP("exclude", "e", make([]string, 0), "Exclude tags from output")
 	analyzeCmd.PersistentFlags().Int16P("concurrency", "c", 8, "Amount of coroutines to use")
-	analyzeCmd.PersistentFlags().Bool("remove-entries-without-dependencies-from-output", false, "Amount of coroutines to use")
 	analyzeCmd.PersistentFlags().String("trim-suffix", "", "Trim matching suffixes from tags")
 	rootCmd.AddCommand(analyzeCmd)
 }
@@ -39,21 +37,17 @@ var analyzeCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		exclude, _ := cmd.Flags().GetStringSlice("exclude")
 		rootLike, _ := cmd.Flags().GetStringSlice("rootlike")
 
 		referenceRegexp := regexp.MustCompile(referenceRegexpStr)
 		concurrency, _ := cmd.Flags().GetInt16("concurrency")
-		removeEmpty, _ := cmd.Flags().GetBool("remove-entries-without-dependencies-from-output")
 
 		runner.Execute(runner.Config{
-			InputFile:              input,
-			OutputFile:             output,
-			Exclude:                exclude,
-			RootLike:               rootLike,
-			ReferenceRegexp:        referenceRegexp,
-			KeepWithNoDependencies: !removeEmpty,
-			Concurrency:            concurrency,
+			InputFile:       input,
+			OutputFile:      output,
+			RootLike:        rootLike,
+			ReferenceRegexp: referenceRegexp,
+			Concurrency:     concurrency,
 		})
 	},
 }

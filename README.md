@@ -20,7 +20,7 @@ Output.json contains found resources and references to other resources. What is 
 - Generate output file
 
 ```
-go run main.go analize --reg "(?:http|https)://([a-zA-Z0-9-]+)(?:.dev|.demo){0,1}.service" --rootlike "environment-variables" --exclude "gandalf,dsi-service-config,environment-variables,dxp,login-service,access-management,api-manager,api-login" --input gh.json --remove-entries-without-dependencies-from-output true -c 500
+go run main.go analize --reg "(?:http|https)://([a-zA-Z0-9-]+)(?:.dev|.demo){0,1}.service" --rootlike "environment-variables" --input gh.json --remove-entries-without-dependencies-from-output true -c 500
 ```
 
 - Generate output file using config json as input
@@ -39,4 +39,10 @@ go run main.go flowchart -i output.json -o flowchart.txt
 
 ```
 go run main.go flowchart -r resource-1
+```
+
+- Generate [Mermaid](https://mermaid.live/) flowchart.txt excluding some resources
+
+```
+go run main.go flowchart -e "resource-2,some-other-4"
 ```

@@ -63,7 +63,7 @@ func referencesInFile(exludeTag string, file string, executionConfig ExecutionCo
 		if len(matches) > 0 {
 			for _, match := range matches {
 				foundTag := strings.TrimSuffix(match[1], executionConfig.TrimSuffix)
-				if exludeTag != foundTag && !slices.Contains(executionConfig.Exclude, foundTag) {
+				if exludeTag != foundTag {
 					references, ok := refs[foundTag]
 					ref := strings.TrimPrefix(fmt.Sprintf("%s:%d", file, line), executionConfig.WorkDir)
 					if ok {
