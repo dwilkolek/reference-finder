@@ -16,7 +16,7 @@ func fetchRepo(repo Repository, config Config) string {
 	path := fmt.Sprintf("%s/%s", config.WorkDir, repo.Name)
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		// fmt.Printf("Fetching repo %s\n", repo.Name)
+		fmt.Printf("Fetching repo %s\n", repo.Name)
 		cmd := exec.Command("gh", "repo", "clone", repo.Url, path)
 		if err := cmd.Run(); err != nil {
 			fmt.Printf("Failed fetching repo, %s\n", repo.Name)

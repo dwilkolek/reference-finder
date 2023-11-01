@@ -91,15 +91,16 @@ func Execute(config Config) {
 
 	guard := make(chan struct{}, config.Concurrency)
 	done := 0
+
 	for _, repo := range config.Repositories {
 		wg.Add(1)
-		guard <- struct{}{} // would block if guard channel is already filled
+		guard <- struct{}{}
 		go func(r Repository) {
 			start := time.Now()
 			foundResource := process(r, config)
 			elapsed := time.Since(start)
 			done = done + 1
-			fmt.Printf("Processed %d of %d \t\t %s took %s\n", done, len(config.Repositories), r.Name, elapsed)
+			fmt.Printf("Processed %d of %d \t %s took %s\n", done, len(config.Repositories), r.Name, elapsed)
 			collector.merge(foundResource)
 			wg.Done()
 			<-guard
