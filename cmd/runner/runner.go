@@ -27,26 +27,46 @@ type Config struct {
 	ReferenceRegexp        *regexp.Regexp `json:"reg"`
 	Exclude                []string       `json:"exclude"`
 	RootLike               []string       `json:"rootlike"`
-	Repositories           []Repository   `json:"respositories"`
 	KeepWithNoDependencies bool           `json:"keepWithNoDependencies"`
 	Concurrency            int16          `json:"concurrency"`
 	InputFile              string         `json:"input"`
 	OutputFile             string         `json:"output"`
-	WorkDir                string         `json:"workdir"`
 	TrimSuffix             string         `json:"trimSuffix"`
 }
 
+type ExecutionConfig struct {
+	Config
+	Repositories []Repository
+	ValidNames   []string
+	WorkDir      string
+}
+
 type collector struct {
-	config    Config
-	resources map[string]Resource
-	lock      sync.Mutex
+	executionConfig ExecutionConfig
+	resources       map[string]Resource
+	lock            sync.Mutex
+}
+
+func executionConfig(config Config) ExecutionConfig {
+	repositories := readInputFile(config.InputFile)
+	validNames := []string{}
+	for _, r := range repositories {
+		if !slices.Contains(config.Exclude, r.Name) {
+			validNames = append(validNames, r.Name)
+		}
+	}
+	return ExecutionConfig{
+		Config:       config,
+		Repositories: repositories,
+		ValidNames:   validNames,
+	}
 }
 
 func (collector *collector) outputResourcesList() []Resource {
 	v := make([]Resource, 0)
 
 	for _, res := range collector.resources {
-		if !collector.config.KeepWithNoDependencies && len(res.References) == 0 {
+		if !collector.executionConfig.KeepWithNoDependencies && len(res.References) == 0 {
 			continue
 		}
 		v = append(v, res)
@@ -60,17 +80,21 @@ func (collector *collector) merge(newResources []Resource) {
 
 	for _, newResource := range newResources {
 		resource := collector.resources[newResource.Tag]
-		merged := mergeRefs(resource.References, newResource.References)
-		for _, exclude := range collector.config.Exclude {
-			delete(merged, exclude)
-		}
+		merged := mergeRefs(resource.References, newResource.References, collector.executionConfig.ValidNames)
 
 		collector.resources[newResource.Tag] = Resource{
 			Tag:        newResource.Tag,
 			References: merged,
 		}
-		for _, exclude := range collector.config.Exclude {
-			delete(collector.resources, exclude)
+
+		toRemove := []string{}
+		for key := range collector.resources {
+			if !slices.Contains(collector.executionConfig.ValidNames, key) {
+				toRemove = append(toRemove, key)
+			}
+		}
+		for _, removeKey := range toRemove {
+			delete(collector.resources, removeKey)
 		}
 	}
 
@@ -78,29 +102,29 @@ func (collector *collector) merge(newResources []Resource) {
 
 func Execute(config Config) {
 	fmt.Printf("Executing with %+v\n", config)
-	config.Repositories = readInputFile(config.InputFile)
-	fmt.Printf("Entries to process: %d\n", len(config.Repositories))
-	config.WorkDir = "workdir"
+	executionConfig := executionConfig(config)
+	fmt.Printf("Entries to process: %d\n", len(executionConfig.Repositories))
+	executionConfig.WorkDir = "workdir"
 	collector := collector{
-		config:    config,
-		resources: map[string]Resource{},
-		lock:      sync.Mutex{},
+		executionConfig: executionConfig,
+		resources:       map[string]Resource{},
+		lock:            sync.Mutex{},
 	}
 
-	_ = os.Mkdir(config.WorkDir, os.ModePerm)
+	_ = os.Mkdir(executionConfig.WorkDir, os.ModePerm)
 
-	guard := make(chan struct{}, config.Concurrency)
+	guard := make(chan struct{}, executionConfig.Concurrency)
 	done := 0
 
-	for _, repo := range config.Repositories {
+	for _, repo := range executionConfig.Repositories {
 		wg.Add(1)
 		guard <- struct{}{}
 		go func(r Repository) {
 			start := time.Now()
-			foundResource := process(r, config)
+			foundResource := process(r, executionConfig)
 			elapsed := time.Since(start)
 			done = done + 1
-			fmt.Printf("Processed %d of %d \t %s took %s\n", done, len(config.Repositories), r.Name, elapsed)
+			fmt.Printf("Processed %d of %d \t %s took %s\n", done, len(executionConfig.Repositories), r.Name, elapsed)
 			collector.merge(foundResource)
 			wg.Done()
 			<-guard
@@ -116,11 +140,11 @@ func Execute(config Config) {
 	os.WriteFile(config.OutputFile, outBytes, 0644)
 }
 
-func process(repo Repository, cfg Config) []Resource {
+func process(repo Repository, executionConfig ExecutionConfig) []Resource {
 
-	location := fetchRepo(repo, cfg)
+	location := fetchRepo(repo, executionConfig)
 
-	if slices.Contains(cfg.RootLike, repo.Name) {
+	if slices.Contains(executionConfig.RootLike, repo.Name) {
 		entries, err := os.ReadDir(location)
 		if err != nil {
 			log.Fatal(err)
@@ -131,7 +155,7 @@ func process(repo Repository, cfg Config) []Resource {
 			if e.IsDir() {
 				nestedAppName := e.Name()
 				nestedLocation := fmt.Sprintf("%s/%s", location, nestedAppName)
-				dependencies := findReferences(nestedAppName, nestedLocation, cfg)
+				dependencies := findReferences(nestedAppName, nestedLocation, executionConfig)
 				nestedResources = append(nestedResources, Resource{Tag: nestedAppName, References: dependencies})
 			}
 
@@ -139,7 +163,7 @@ func process(repo Repository, cfg Config) []Resource {
 		return nestedResources
 	}
 
-	dependencies := findReferences(repo.Name, location, cfg)
+	dependencies := findReferences(repo.Name, location, executionConfig)
 
 	return []Resource{{
 		Tag:        repo.Name,

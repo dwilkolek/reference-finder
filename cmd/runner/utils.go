@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-func fetchRepo(repo Repository, config Config) string {
-	path := fmt.Sprintf("%s/%s", config.WorkDir, repo.Name)
+func fetchRepo(repo Repository, executionConfig ExecutionConfig) string {
+	path := fmt.Sprintf("%s/%s", executionConfig.WorkDir, repo.Name)
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		fmt.Printf("Fetching repo %s\n", repo.Name)
@@ -26,7 +26,7 @@ func fetchRepo(repo Repository, config Config) string {
 	return path
 }
 
-func findReferences(forTag string, startingPath string, cfg Config) map[string][]string {
+func findReferences(forTag string, startingPath string, executionConfig ExecutionConfig) map[string][]string {
 	var refMap = make(map[string][]string)
 
 	filepath.Walk(startingPath,
@@ -35,14 +35,14 @@ func findReferences(forTag string, startingPath string, cfg Config) map[string][
 				return err
 			}
 			if !info.IsDir() {
-				refMap = mergeRefs(refMap, referencesInFile(forTag, path, cfg))
+				refMap = mergeRefs(refMap, referencesInFile(forTag, path, executionConfig), executionConfig.ValidNames)
 			}
 			return nil
 		})
 	return refMap
 }
 
-func referencesInFile(exludeTag string, file string, cfg Config) map[string][]string {
+func referencesInFile(exludeTag string, file string, executionConfig ExecutionConfig) map[string][]string {
 	refs := make(map[string][]string)
 
 	readFile, err := os.Open(file)
@@ -59,13 +59,13 @@ func referencesInFile(exludeTag string, file string, cfg Config) map[string][]st
 	for fileScanner.Scan() {
 		line++
 		content := fileScanner.Text()
-		matches := cfg.ReferenceRegexp.FindAllStringSubmatch(content, -1)
+		matches := executionConfig.ReferenceRegexp.FindAllStringSubmatch(content, -1)
 		if len(matches) > 0 {
 			for _, match := range matches {
-				foundTag := strings.TrimSuffix(match[1], cfg.TrimSuffix)
-				if exludeTag != foundTag && !slices.Contains(cfg.Exclude, foundTag) {
+				foundTag := strings.TrimSuffix(match[1], executionConfig.TrimSuffix)
+				if exludeTag != foundTag && !slices.Contains(executionConfig.Exclude, foundTag) {
 					references, ok := refs[foundTag]
-					ref := strings.TrimPrefix(fmt.Sprintf("%s:%d", file, line), cfg.WorkDir)
+					ref := strings.TrimPrefix(fmt.Sprintf("%s:%d", file, line), executionConfig.WorkDir)
 					if ok {
 						refs[foundTag] = append(references, ref)
 					} else {
@@ -80,24 +80,18 @@ func referencesInFile(exludeTag string, file string, cfg Config) map[string][]st
 	return refs
 }
 
-func GenerateFlowchart(resources []Resource) string {
-	flowchart := "flowchart TD\n"
-	for _, resource := range resources {
-		source := resource.Tag
-		for dep := range resource.References {
-			flowchart = flowchart + fmt.Sprintf("\t%s --->|depends on| %s\n", source, dep)
-		}
-	}
-	return flowchart
-}
-
-func mergeRefs(m1 map[string][]string, m2 map[string][]string) map[string][]string {
+func mergeRefs(m1 map[string][]string, m2 map[string][]string, validNames []string) map[string][]string {
 	merged := make(map[string][]string)
 	for k, v := range m1 {
-		merged[k] = v
+		if len(validNames) == 0 || slices.Contains(validNames, k) {
+			merged[k] = v
+		}
 	}
 	for key, value := range m2 {
-		merged[key] = append(merged[key], value...)
+		if len(validNames) == 0 || slices.Contains(validNames, key) {
+			merged[key] = append(merged[key], value...)
+		}
+
 	}
 
 	for key, value := range merged {

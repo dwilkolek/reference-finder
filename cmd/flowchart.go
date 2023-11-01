@@ -13,6 +13,7 @@ import (
 func init() {
 	flowchart.PersistentFlags().StringP("input", "i", "output.json", "Input file")
 	flowchart.PersistentFlags().StringP("output", "o", "flowchart.txt", "Output file")
+	flowchart.PersistentFlags().StringP("resource", "r", "", "Chart for single resource")
 	rootCmd.AddCommand(flowchart)
 }
 
@@ -23,6 +24,8 @@ var flowchart = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		input, _ := cmd.Flags().GetString("input")
 		output, _ := cmd.Flags().GetString("output")
+		tag, _ := cmd.Flags().GetString("resource")
+
 		jsonFile, err := os.Open(input)
 		if err != nil {
 			fmt.Printf("Failed to read file %s: %s\n", input, err)
@@ -39,7 +42,7 @@ var flowchart = &cobra.Command{
 			os.Exit(1)
 		}
 
-		flowchart := runner.GenerateFlowchart(resources)
+		flowchart := runner.GenerateFlowchart(resources, tag)
 
 		fmt.Printf("Saving to %s\n", output)
 		os.Remove(output)
