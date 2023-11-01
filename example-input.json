@@ -1,0 +1,8 @@
+[
+  { "name": "dwilkolek", "url": "https://github.com/dwilkolek/dwilkolek" },
+  {
+    "name": "jvm-object-serialization",
+    "url": "https://github.com/dwilkolek/jvm-object-serialization"
+  },
+  { "name": "wombat", "url": "https://github.com/dwilkolek/wombat" }
+]

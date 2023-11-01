@@ -1,7 +1,8 @@
-tmp
-bitbucket.json
-bb.js
-gh.json
-flowchart.txt
-bb-processed.json
+input.json
 output.json
+flowchart.txt
+workdir
+config.json
+LOCAL_DEV_TRASH
+reference-finder
+reference-finder.exe

@@ -1,0 +1,13 @@
+{
+  "reg": "(?:http|https)://([a-zA-Z0-9-]+)(?:.dev|.demo){0,1}.service",
+  "rootlike": ["service-config"],
+  "exclude": [
+    "resource-1",
+    "resource-2"
+  ],
+  "input": "input.json",
+  "output": "output.json",
+  "keepWithNoDependencies": true,
+  "concurrency": 10,
+  "trimSuffix": "-dev"
+}
