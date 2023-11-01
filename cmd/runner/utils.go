@@ -84,7 +84,7 @@ func GenerateFlowchart(resources []Resource) string {
 	flowchart := "flowchart TD\n"
 	for _, resource := range resources {
 		source := resource.Tag
-		for dep, _ := range resource.References {
+		for dep := range resource.References {
 			flowchart = flowchart + fmt.Sprintf("\t%s --->|depends on| %s\n", source, dep)
 		}
 	}
