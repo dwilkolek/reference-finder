@@ -28,9 +28,19 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 			entry := fmt.Sprintf("%s ---> %s\n", source, dep)
 			visited[source] = true
 			visited[dep] = true
+			for groupName, group := range groups {
+				if slices.Contains(group, source){
+					groupped[groupName] = append(groupped[groupName], fmt.Sprintf("%s ---> TEAM-%s\n", source, groupName))
+					break
+				}
+			}
 			if len(tag) == 0 || (len(tag) > 0 && (source == tag || dep == tag)) {
 				added := false
 				for groupName, group := range groups {
+					if slices.Contains(group, dep) {
+						groupped[groupName] = append(groupped[groupName], fmt.Sprintf("%s ---> TEAM-%s\n", dep, groupName))
+						
+					}
 					if slices.Contains(group, source) && slices.Contains(group, dep) {
 						added = true
 						groupped[groupName] = append(groupped[groupName], entry)
@@ -49,6 +59,7 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 		// 	direction TB
 		// 	top1[top] --> bottom1[bottom]
 		// end
+		entries := unique(entries)
 		flowchart = flowchart + fmt.Sprintf("\tsubgraph %s\n", groupName)
 		for _, entry := range entries {
 			flowchart = flowchart + "\t\t" + entry
