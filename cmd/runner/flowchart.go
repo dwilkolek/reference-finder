@@ -29,8 +29,8 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 			visited[source] = true
 			visited[dep] = true
 			for groupName, group := range groups {
-				if slices.Contains(group, source){
-					groupped[groupName] = append(groupped[groupName], fmt.Sprintf("%s ---> TEAM-%s\n", source, groupName))
+				if slices.Contains(group, source) {
+					groupped[groupName] = append(groupped[groupName], fmt.Sprintf("TEAM-%s ---> %s\n", groupName, source))
 					break
 				}
 			}
@@ -38,8 +38,8 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 				added := false
 				for groupName, group := range groups {
 					if slices.Contains(group, dep) {
-						groupped[groupName] = append(groupped[groupName], fmt.Sprintf("%s ---> TEAM-%s\n", dep, groupName))
-						
+						groupped[groupName] = append(groupped[groupName], fmt.Sprintf("TEAM-%s ---> %s\n", groupName, dep))
+
 					}
 					if slices.Contains(group, source) && slices.Contains(group, dep) {
 						added = true
