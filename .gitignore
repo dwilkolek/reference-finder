@@ -1,6 +1,6 @@
 input.json
 output.json
-flowchart.txt
+*.txt
 workdir
 config.json
 LOCAL_DEV_TRASH

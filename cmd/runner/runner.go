@@ -30,6 +30,7 @@ type Config struct {
 	InputFile       string         `json:"input"`
 	OutputFile      string         `json:"output"`
 	TrimSuffix      string         `json:"trimSuffix"`
+	Sync            bool           `json:"sync"`
 }
 
 type ExecutionConfig struct {
