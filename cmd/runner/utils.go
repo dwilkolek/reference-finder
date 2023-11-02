@@ -28,8 +28,7 @@ func fetchRepo(repo Repository, executionConfig ExecutionConfig) string {
 		cmd := exec.Command("git", "pull")
 		cmd.Dir = path
 		if err := cmd.Run(); err != nil {
-			fmt.Printf("Failed syncing repo, %s\n", repo.Name)
-			os.Exit(1)
+			fmt.Printf("!!!! Failed syncing repo, %s\n", repo.Name)
 		}
 	}
 	return path
