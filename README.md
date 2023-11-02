@@ -9,22 +9,7 @@ Output.json contains found resources and references to other resources. What is 
 
 ## Analyzer
 Purpose is to map repositories into single json mapping that could be used to render flowchart.
-It's possible to run it by flags or json
-### Running with flags
-<pre>
-Usage:
-  reference-finder analyze [flags]
 
-Flags:
-  -c, --concurrency int16    Amount of coroutines to use (default 8)
-  -h, --help                 help for analyze
-  -i, --input string         Input file (default "input.json")
-  -r, --reg string           Reference regexp with one capturing group
-      --rootlike strings     Repositories that should be treated as root
-      --trim-suffix string   Trim matching suffixes from tags
-</pre>
-
-### Running with config in json
 <pre>
 Usage:
   reference-finder analyze-json [flags]
