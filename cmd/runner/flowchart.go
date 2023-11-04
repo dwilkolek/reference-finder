@@ -2,7 +2,9 @@ package runner
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
+	"strings"
 )
 
 func GenerateFlowchart(resources []Resource, tag string, exclude []string, groups map[string][]string, renderOrphans bool,
@@ -27,7 +29,7 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 		}
 		for groupName, group := range groups {
 			if slices.Contains(group, source) {
-				groupped[groupName] = append(groupped[groupName], fmt.Sprintf("%s ---> %s\n", team(groupName), tr(source, tmap)))
+				groupped[groupName] = append(groupped[groupName], fmt.Sprintf("%s ---> %s\n", groupNode(groupName), node(source, tmap)))
 				break
 			}
 		}
@@ -39,7 +41,7 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 			if len(validTags) > 0 && !slices.Contains(validTags, dep) {
 				continue
 			}
-			entry := fmt.Sprintf("%s ---> %s\n", tr(source, tmap), tr(dep, tmap))
+			entry := fmt.Sprintf("%s ---> %s\n", node(source, tmap), node(dep, tmap))
 			visited[source] = true
 			visited[dep] = true
 
@@ -47,12 +49,12 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 				added := false
 				for groupName, group := range groups {
 					if slices.Contains(group, dep) {
-						groupped[groupName] = append(groupped[groupName], fmt.Sprintf("%s ---> %s\n", team(groupName), tr(dep, tmap)))
+						groupped[groupName] = append(groupped[groupName], fmt.Sprintf("%s ---> %s\n", groupNode(groupName), node(dep, tmap)))
 
 					}
 					if slices.Contains(group, source) && slices.Contains(group, dep) {
 						added = true
-						groupped[groupName] = append(groupped[groupName], tr(entry, tmap))
+						groupped[groupName] = append(groupped[groupName], node(entry, tmap))
 						break
 					}
 				}
@@ -69,7 +71,7 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 		// 	direction TB
 		// 	top1[top] --> bottom1[bottom]
 		// end
-		flowchart = flowchart + fmt.Sprintf("\tsubgraph %s\n", groupName)
+		flowchart = flowchart + fmt.Sprintf("\tsubgraph \"`%s`\"\n", clearString(groupName))
 		for _, entry := range entries {
 			flowchart = flowchart + "\t\t" + entry
 		}
@@ -89,10 +91,10 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 	if renderOrphans {
 		orhpanGroupName := "Orphans"
 		orphanCenter := "c(Orphan Center)"
-		flowchart = flowchart + fmt.Sprintf("\tsubgraph %s\n", orhpanGroupName)
+		flowchart = flowchart + fmt.Sprintf("\tsubgraph \"`%s`\"\n", orhpanGroupName)
 		for child, isVisited := range visited {
 			if !isVisited && !slices.Contains(exclude, child) {
-				flowchart += fmt.Sprintf("\t\t%s ---> %s\n", tr(child, tmap), tr(orphanCenter, tmap))
+				flowchart += fmt.Sprintf("\t\t%s ---> %s\n", node(child, tmap), node(orphanCenter, tmap))
 			}
 		}
 		flowchart = flowchart + "\tend\n"
@@ -101,11 +103,17 @@ func GenerateFlowchart(resources []Resource, tag string, exclude []string, group
 	return flowchart
 }
 
-func team(teamName string) string {
-	return fmt.Sprintf("team-%s(\"`🧑‍💻 %s 👩‍💻`\")", teamName, teamName)
+var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
+
+func clearString(str string) string {
+	return strings.Trim(nonAlphanumericRegex.ReplaceAllString(str, ""), " ")
 }
 
-func tr(tag string, translationMapping map[string]string) string {
+func groupNode(groupName string) string {
+	return fmt.Sprintf("group-%s(\"`%s`\")", clearString(groupName), groupName)
+}
+
+func node(tag string, translationMapping map[string]string) string {
 	v, ok := translationMapping[tag]
 	if ok {
 		return fmt.Sprintf("%s(\"`%s`\")", tag, v)
