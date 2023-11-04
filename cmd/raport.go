@@ -78,15 +78,19 @@ var reportCmd = &cobra.Command{
 			priority := 0
 			reportEntry := ""
 			if slices.Contains(exclude, resource.Tag) {
-				fmt.Printf("Excluding %s\n", resource.Tag)
 				continue
 			}
 			if len(validTags) > 0 && !slices.Contains(validTags, resource.Tag) {
-				fmt.Printf("invalid tag %s\n", resource.Tag)
 				continue
 			}
 			fmt.Printf("Adding to report %s\n", resource.Tag)
-			reportEntry += fmt.Sprintf("## %s\n\n", resource.Tag)
+			appName := resource.Tag
+			translated, ok := translationMapping[appName]
+			if ok {
+				fmt.Printf("Transalted %s to %s", appName, translated)
+				appName = translated
+			}
+			reportEntry += fmt.Sprintf("## %s\n\n", appName)
 			for gName, gApps := range groups {
 				if slices.Contains(gApps, resource.Tag) {
 					priority++
@@ -109,6 +113,12 @@ var reportCmd = &cobra.Command{
 			depsPart := "### Dependencies:\n\n"
 			hasDeps := false
 			for ref := range resource.References {
+				if slices.Contains(exclude, ref) {
+					continue
+				}
+				if len(validTags) > 0 && !slices.Contains(validTags, ref) {
+					continue
+				}
 				hasDeps = true
 				priority++
 				depsPart += fmt.Sprintf("- %s\n", ref)
