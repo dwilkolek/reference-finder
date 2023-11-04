@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"slices"
 	"sync"
-	"time"
 )
 
 type Repository struct {
@@ -19,6 +18,7 @@ type Repository struct {
 type Resource struct {
 	Tag        string              `json:"tag"`
 	References map[string][]string `json:"references"`
+	Software   []string            `json:"software"`
 }
 
 var wg sync.WaitGroup
@@ -78,10 +78,12 @@ func (collector *collector) merge(newResources []Resource) {
 	for _, newResource := range newResources {
 		resource := collector.resources[newResource.Tag]
 		merged := mergeRefs(resource.References, newResource.References, collector.executionConfig.ValidNames)
+		mergedSoftware := unique(append(resource.Software, newResource.Software...))
 
 		collector.resources[newResource.Tag] = Resource{
 			Tag:        newResource.Tag,
 			References: merged,
+			Software:   mergedSoftware,
 		}
 
 		if len(collector.executionConfig.ValidNames) > 0 {
@@ -119,11 +121,11 @@ func Execute(config Config) {
 		wg.Add(1)
 		guard <- struct{}{}
 		go func(r Repository) {
-			start := time.Now()
+			// start := time.Now()
 			foundResource := process(r, executionConfig)
-			elapsed := time.Since(start)
+			// elapsed := time.Since(start)
 			done = done + 1
-			fmt.Printf("Processed %d of %d \t %s took %s\n", done, len(executionConfig.Repositories), r.Name, elapsed)
+			// fmt.Printf("Processed %d of %d \t %s took %s\n", done, len(executionConfig.Repositories), r.Name, elapsed)
 			collector.merge(foundResource)
 			wg.Done()
 			<-guard
@@ -154,18 +156,19 @@ func process(repo Repository, executionConfig ExecutionConfig) []Resource {
 			if e.IsDir() {
 				nestedAppName := e.Name()
 				nestedLocation := fmt.Sprintf("%s/%s", location, nestedAppName)
-				dependencies := findReferences(nestedAppName, nestedLocation, executionConfig)
-				nestedResources = append(nestedResources, Resource{Tag: nestedAppName, References: dependencies})
+				findings := findReferences(nestedAppName, nestedLocation, executionConfig)
+				nestedResources = append(nestedResources, Resource{Tag: nestedAppName, References: findings.References, Software: findings.Software})
 			}
 
 		}
 		return nestedResources
 	}
 
-	dependencies := findReferences(repo.Name, location, executionConfig)
+	findings := findReferences(repo.Name, location, executionConfig)
 
 	return []Resource{{
 		Tag:        repo.Name,
-		References: dependencies,
+		References: findings.References,
+		Software:   findings.Software,
 	}}
 }
