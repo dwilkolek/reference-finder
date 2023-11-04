@@ -31,6 +31,7 @@ type Config struct {
 	OutputFile      string         `json:"output"`
 	TrimSuffix      string         `json:"trimSuffix"`
 	Sync            bool           `json:"sync"`
+	ExtendedSearch  bool           `json:"extendedSearch"`
 }
 
 type ExecutionConfig struct {
@@ -49,8 +50,10 @@ type collector struct {
 func executionConfig(config Config) ExecutionConfig {
 	repositories := readInputFile(config.InputFile)
 	validNames := []string{}
-	for _, r := range repositories {
-		validNames = append(validNames, r.Name)
+	if !config.ExtendedSearch {
+		for _, r := range repositories {
+			validNames = append(validNames, r.Name)
+		}
 	}
 	return ExecutionConfig{
 		Config:       config,
@@ -81,14 +84,16 @@ func (collector *collector) merge(newResources []Resource) {
 			References: merged,
 		}
 
-		toRemove := []string{}
-		for key := range collector.resources {
-			if !slices.Contains(collector.executionConfig.ValidNames, key) {
-				toRemove = append(toRemove, key)
+		if len(collector.executionConfig.ValidNames) > 0 {
+			toRemove := []string{}
+			for key := range collector.resources {
+				if !slices.Contains(collector.executionConfig.ValidNames, key) {
+					toRemove = append(toRemove, key)
+				}
 			}
-		}
-		for _, removeKey := range toRemove {
-			delete(collector.resources, removeKey)
+			for _, removeKey := range toRemove {
+				delete(collector.resources, removeKey)
+			}
 		}
 	}
 

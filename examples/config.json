@@ -4,5 +4,7 @@
   "input": "input.json",
   "output": "output.json",
   "concurrency": 10,
-  "trimSuffix": "-dev"
+  "trimSuffix": "-dev",
+  "sync": false,
+  "extendedSearch": true
 }

@@ -1,11 +1,9 @@
-input.json
-output.json
-*.txt
 workdir
-config.json
 LOCAL_DEV_TRASH
 reference-finder
 reference-finder.exe
 NOTES
-groups.json
+./*.txt
+./*.json
+tfmc
 .DS_Store
