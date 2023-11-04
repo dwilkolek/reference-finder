@@ -5,7 +5,7 @@ Output.json contains found resources and references to other resources. What is 
 
 - Repository name (expect rootlike repos) 
 - Directory in main rootlike repo 
-- First capture grup in regex
+- First capture group in regex
 
 ## Analyzer
 Purpose is to map repositories into single json mapping that could be used to render flowchart.
