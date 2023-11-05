@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"slices"
 	"sync"
+	"time"
 )
 
 type Repository struct {
@@ -121,11 +122,11 @@ func Execute(config Config) {
 		wg.Add(1)
 		guard <- struct{}{}
 		go func(r Repository) {
-			// start := time.Now()
+			start := time.Now()
 			foundResource := process(r, executionConfig)
-			// elapsed := time.Since(start)
+			elapsed := time.Since(start)
 			done = done + 1
-			// fmt.Printf("Processed %d of %d \t %s took %s\n", done, len(executionConfig.Repositories), r.Name, elapsed)
+			fmt.Printf("Processed %d of %d \t %s took %s\n", done, len(executionConfig.Repositories), r.Name, elapsed)
 			collector.merge(foundResource)
 			wg.Done()
 			<-guard
