@@ -91,7 +91,7 @@ func findReferences(forTag string, startingPath string, executionConfig Executio
 
 var dockerReg = regexp.MustCompile("FROM ([A-Za-z0-9-/]+:[A-Za-z0-9-]+)")
 var springReg = regexp.MustCompile("(?:springBootVersion = '|org.springframework.boot\"\\) version \")([0-9A-Z.]+)")
-var frontendReg = regexp.MustCompile("\"(typescript|node|react|aws-cdk)\": \"([0-9A-Za-z.]+)\"")
+var frontendReg = regexp.MustCompile("\"(typescript|node|react|aws-cdk)\": \"[\\~\\^]{0,1}([A-Za-z0-9-.]+)\"")
 var kotlinReg = regexp.MustCompile("(?:kotlin\\(\"jvm\"\\) version \"|kotlin_version = ')(([0-9\\.]+))")
 var mapping = map[string]string{
 	"adoptopenjdk/openjdk11":      "Java 11",
