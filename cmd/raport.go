@@ -87,7 +87,7 @@ var reportCmd = &cobra.Command{
 			appName := resource.Tag
 			translated, ok := translationMapping[appName]
 			if ok {
-				fmt.Printf("Transalted %s to %s", appName, translated)
+				fmt.Printf("Translated %s to %s", appName, translated)
 				appName = translated
 			}
 			reportEntry += fmt.Sprintf("## %s\n\n", appName)

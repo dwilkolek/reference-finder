@@ -9,7 +9,7 @@ import (
 
 func GenerateFlowchart(resources []Resource, tag string, exclude []string, groups map[string][]string, renderOrphans bool,
 	validTags []string, tmap map[string]string) string {
-	flowchart := "flowchart LR\n"
+	flowchart := "flowchart TD\n"
 
 	visited := map[string]bool{}
 
