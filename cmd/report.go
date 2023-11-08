@@ -73,7 +73,8 @@ var reportCmd = &cobra.Command{
 		}
 
 		reportMd := ""
-		reportEntires := map[int][]string{}
+		reportEntires := map[string][]string{}
+
 		for _, resource := range resources {
 			priority := 0
 			reportEntry := ""
@@ -87,13 +88,13 @@ var reportCmd = &cobra.Command{
 			appName := resource.Tag
 			translated, ok := translationMapping[appName]
 			if ok {
-				fmt.Printf("Translated %s to %s", appName, translated)
 				appName = translated
 			}
 			reportEntry += fmt.Sprintf("## %s\n\n", appName)
+
 			for gName, gApps := range groups {
 				if slices.Contains(gApps, resource.Tag) {
-					priority++
+					priority += 200
 					reportEntry += fmt.Sprintf("### Team: %s\n\n", gName)
 				}
 			}
@@ -128,12 +129,18 @@ var reportCmd = &cobra.Command{
 
 				reportEntry += depsPart
 			}
-			reportEntires[priority] = append(reportEntires[priority], reportEntry)
+			entryKey := fmt.Sprintf("%04d", 1000-priority)
+			reportEntires[entryKey] = append(reportEntires[entryKey], reportEntry)
 		}
 
-		maxPrio := 1000
-		for prio := maxPrio; prio > -1; prio-- {
-			for _, entry := range reportEntires[prio] {
+		keys := make([]string, 0, len(reportEntires))
+		for k := range reportEntires {
+			keys = append(keys, k)
+		}
+		slices.Sort(keys)
+
+		for _, key := range keys {
+			for _, entry := range reportEntires[key] {
 				reportMd += entry
 			}
 		}

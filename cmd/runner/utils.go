@@ -56,7 +56,7 @@ func findReferences(forTag string, startingPath string, executionConfig Executio
 					matches := executionConfig.ReferenceRegexp.FindAllStringSubmatch(content, -1)
 					if len(matches) > 0 {
 						for _, match := range matches {
-							foundTag := strings.TrimSuffix(match[1], executionConfig.TrimSuffix)
+							foundTag := resolveAlias(strings.TrimSuffix(match[1], executionConfig.TrimSuffix), executionConfig.Aliases)
 							if forTag != foundTag {
 								references, ok := refs[foundTag]
 								ref := strings.TrimPrefix(fmt.Sprintf("%s:%d", file, line), executionConfig.WorkDir)
@@ -207,6 +207,7 @@ func mergeRefs(m1 map[string][]string, m2 map[string][]string, validNames []stri
 			merged[k] = v
 		}
 	}
+
 	for key, value := range m2 {
 		if len(validNames) == 0 || slices.Contains(validNames, key) {
 			merged[key] = append(merged[key], value...)
@@ -217,6 +218,7 @@ func mergeRefs(m1 map[string][]string, m2 map[string][]string, validNames []stri
 	for key, value := range merged {
 		merged[key] = unique(value)
 	}
+
 	return merged
 }
 
@@ -245,4 +247,13 @@ func readInputFile(inputFile string) []Repository {
 
 	_ = json.Unmarshal([]byte(data), &repos)
 	return repos
+}
+
+func resolveAlias(tag string, aliases map[string]string) string {
+	alias, ok := aliases[tag]
+	if ok {
+		return alias
+	} else {
+		return tag
+	}
 }

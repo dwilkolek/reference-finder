@@ -25,14 +25,15 @@ type Resource struct {
 var wg sync.WaitGroup
 
 type Config struct {
-	ReferenceRegexp *regexp.Regexp `json:"reg"`
-	RootLike        []string       `json:"rootlike"`
-	Concurrency     int16          `json:"concurrency"`
-	InputFile       string         `json:"input"`
-	OutputFile      string         `json:"output"`
-	TrimSuffix      string         `json:"trimSuffix"`
-	Sync            bool           `json:"sync"`
-	ExtendedSearch  bool           `json:"extendedSearch"`
+	ReferenceRegexp *regexp.Regexp    `json:"reg"`
+	RootLike        []string          `json:"rootlike"`
+	Concurrency     int16             `json:"concurrency"`
+	InputFile       string            `json:"input"`
+	OutputFile      string            `json:"output"`
+	TrimSuffix      string            `json:"trimSuffix"`
+	Sync            bool              `json:"sync"`
+	ExtendedSearch  bool              `json:"extendedSearch"`
+	Aliases         map[string]string `json:"aliases"`
 }
 
 type ExecutionConfig struct {
@@ -156,19 +157,21 @@ func process(repo Repository, executionConfig ExecutionConfig) []Resource {
 		for _, e := range entries {
 			if e.IsDir() {
 				nestedAppName := e.Name()
+				tag := resolveAlias(nestedAppName, executionConfig.Aliases)
 				nestedLocation := fmt.Sprintf("%s/%s", location, nestedAppName)
-				findings := findReferences(nestedAppName, nestedLocation, executionConfig)
-				nestedResources = append(nestedResources, Resource{Tag: nestedAppName, References: findings.References, Software: findings.Software})
+				findings := findReferences(tag, nestedLocation, executionConfig)
+				nestedResources = append(nestedResources, Resource{Tag: tag, References: findings.References, Software: findings.Software})
 			}
 
 		}
 		return nestedResources
 	}
 
-	findings := findReferences(repo.Name, location, executionConfig)
+	tag := resolveAlias(repo.Name, executionConfig.Aliases)
+	findings := findReferences(tag, location, executionConfig)
 
 	return []Resource{{
-		Tag:        repo.Name,
+		Tag:        tag,
 		References: findings.References,
 		Software:   findings.Software,
 	}}
