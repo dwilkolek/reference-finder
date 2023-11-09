@@ -56,6 +56,10 @@ func executionConfig(config Config) ExecutionConfig {
 		for _, r := range repositories {
 			validNames = append(validNames, r.Name)
 		}
+		for fromTag, toAliass := range config.Aliases {
+			validNames = append(validNames, fromTag, toAliass)
+		}
+		validNames = unique(validNames)
 	}
 	return ExecutionConfig{
 		Config:       config,
